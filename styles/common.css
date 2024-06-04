@@ -1,0 +1,225 @@
+.med-size {
+   font-size: medium;
+}
+
+.alert {
+   color: #08457E;
+   font-style: italic;
+   /*#076678;*/
+}
+
+.title-color {
+   color: #08457E;
+}
+
+h1 {
+   font-size: 100%!important;
+}
+
+h2 {
+   font-size: 80%!important;
+   color: #08457E!important;
+
+}
+
+h3 {
+   font-size: 70%!important;
+   color: #08457E!important;
+}
+
+img {
+   vertical-align: middle;
+}
+
+figcaption {
+   font-size: small;
+}
+
+figcaption.col-title {
+   font-size: medium;
+   font-weight: bold;
+}
+
+
+/* Emulate footnote placements */
+.small-note {
+   text-align: left;
+   font-size: small;
+}
+
+
+
+/* Split the page into multiple equally sized columns */
+.column-layout{
+   display: grid;
+   grid-auto-flow: column;
+   grid-auto-columns: 1fr;
+}
+
+/*  Split the page into multiple equally sized rows */
+.row-layout {
+   display: grid;
+   grid-auto-flow: row;
+   grid-auto-rows: 1fr;
+}
+
+
+/* Simple grid for two col, bottom row layout */
+.two-col-bottom-row-layout {
+   display: grid;
+   grid-template-columns: repeat(6, 1fr);
+   grid-template-rows: auto;
+   grid-template-areas:
+      "tr-1 tr-1 tr-1 tr-2 tr-2 tr-2"
+      "br-1 br-1 br-2 br-2 br-3 br-3";
+
+}
+
+.tc-br-col1 {
+   grid-area: tr-1;
+
+}
+.tc-br-col2 {
+   grid-area: tr-2;
+
+}
+.tc-br-bottom-row-1 {
+   grid-area: br-1;
+}
+
+.tc-br-bottom-row-2 {
+   grid-area: br-2;
+}
+
+.tc-br-bottom-row-3 {
+   grid-area: br-3;
+}
+/* ---------- */
+
+
+
+/* Grid layout for the rollouts */
+.grid-5-col {
+   display: grid;
+   row-gap: 10px;
+   grid-template-columns: repeat(5, 1fr);
+   grid-auto-rows: minmax(100px, auto);
+}
+
+
+/* Column layout for the results */
+.results-grid {
+   display: grid;
+   row-gap: 1em;
+   grid-template-columns: repeat(4, 1fr);
+   grid-template-areas: 
+   "fig-1 fig-1 fig-2 fig-2"
+   "text text text text" 
+}
+
+.results-grid-fig-1{
+   grid-area: fig-1;
+}
+
+.results-grid-fig-2 {
+   grid-area: fig-2;
+}
+
+.results-grid-text {
+   grid-area: text;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+}
+
+
+/* Grid with 2/3 split of vertical space*/
+.two-thirds-vert-layout {
+   display: grid;
+   grid-gap: 10px;
+   grid-template-rows: 2fr 1fr;
+   grid-template-columns: 1fr 1fr 1fr;
+}
+
+.two-thirds-vert-layout-pos-1-1 {
+   grid-row: 1;
+   grid-column: 1;
+}
+
+
+.two-thirds-vert-layout-pos-1-2 {
+   grid-row: 1;
+   grid-column: 2;
+}
+
+
+.two-thirds-vert-layout-pos-1-3 {
+   grid-row: 1;
+   grid-column: 3;
+}
+
+
+.two-thirds-vert-layout-pos-2 {
+   grid-row: 2;
+   grid-column: 1/4;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+}
+
+
+.triangle-layout {
+   display: grid;
+   grid-template-rows: 1fr 1fr;
+   grid-template-columns: repeat(6, 1fr);
+}
+
+.triangle-top-left {
+   grid-row: 1;
+   grid-column: 1/4;
+}
+
+.triangle-top-right {
+   grid-row: 1;
+   grid-column: 4/7;
+}
+
+.triangle-bottom {
+   grid-row: 2;
+   grid-column: 2/5;
+}
+
+/* Slide specific styles */
+
+.problem-setting-and-assumptions div {
+   grid-gap: 10px;
+}
+.experiment-setup img {
+   width: 300px;
+}
+
+.hopper-results div {
+   grid-gap: 10px;
+}
+
+.half-cheetah-results div {
+   grid-gap: 10px;
+}
+
+.swimmer-results div {
+   grid-gap: 10px;
+
+}
+
+.closer-look-at-training-progress div {
+   grid-gap: 20px;
+}
+
+/* Add gap between columns in last-slide */
+.summary-and-future-directions div {
+   grid-gap: 20px;
+}
+
+.references p {
+  font-size: small; 
+}

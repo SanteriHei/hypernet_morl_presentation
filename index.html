@@ -1,0 +1,1219 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Generalizing Pareto optimal policies in Multi-objective Reinforcement learning</title>
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/white.css">
+        <link rel="stylesheet" href="styles/common.css">
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+               <!-- title page -->
+               <section>
+                 <h1>
+                    Generalizing Pareto optimal policies in 
+                    Multi-objective Reinforcement learning
+                 </h1>
+                 <h3 style="font-size: 70%"> Empirical study</h3>
+                 <span style="font-size: 60%"> Santeri Heiskanen</span></br>
+                 <span style="text-align: center; font-size: 50%">
+                    <b>Supervisors</b>: Prof. Ville Kyrki<sup>1</sup>,
+                    Dr. Atanu Mazumdar <sup>1</sup>,
+                    Prof. Joni Kämäräinen<sup>2</sup>
+                 </span>
+                 <div style="text-align: center; font-size: 40%">
+                    <sup>1</sup>Aalto University, <sup>2</sup>Tampere University
+                 </div>
+
+                 <span style="text-align: center; font-size: 50%">20-05-2024</span>
+               </section>
+               
+               <!-- MORL in a nutshell -->
+               <section class="intro-to-morl">
+                  <h2>Multi-objective reinforcement learning in a nutshell</h2>
+
+                  <div class="column-layout"> 
+                     <div>
+                        <ul class="med-size">
+                           <li>
+                              Multi-objective reinforcement learning (MORL) is
+                              an extension to single-objective Reinforcement
+                              learning, where one is considering <span class="alert"> multiple </span> 
+                              (conflicting) objectives simultaneously.
+                           </li>
+                           <li>
+                              A policy \(\pi\) is considered
+                              <span class="alert"> Pareto-optimal</span> if it 
+                              performs better than the other policies in at least
+                              one objective, and is (at least) equally good in 
+                              other objectives.
+                           </li>
+
+                           <li>
+                              Goal of MORL is (often) to find a set of Pareto-optimal
+                              policies, called Pareto front.<sup>1</sup>
+                           </li>
+
+                           <li>
+                              <figcaption class="col-title">Why?</figcaption>
+                              <ul>
+                                <li> Many real-world problems are <em>truly</em>
+                                    multi-objective.
+                                </li> 
+                                <li>
+                                   The responsibility of making the compromise
+                                   is moved away from the engineer to the user.
+                                </li>
+                                <li>
+                                   The desired solution can be selected after
+                                   observing the outcomes of the different trade-offs.
+                                </li>
+                              </ul>
+                           </li> 
+                        </ul>
+                     </div>
+                     <div>
+                        <figure>
+                           <img src="./images/theory/conceptual-pareto-front.svg">
+                           <figcaption>
+                              <b>Figure</b>: Conceptual Pareto-front for two
+                              objectives. Each point in the plot represents a
+                              value of a policy \(\pi\) with given preferences
+                              \(\mathbf{w}\).
+                           </figcaption>
+                        </figure>
+                     </div>
+                  </div>
+                  
+                  <div class="small-note">
+                    1. The exact goal is dependent on multiple factors, including 
+                    the type of the utility function. See Roijers et al.
+                    <span class="ref" id="@roijers_survey_2013"></span> for more information.
+                  </div>
+                  
+                  <!-- Speaker notes -->
+                  <aside class="notes">
+                     <ul>
+                        <li>
+                           Pareto-optimal policies &rArr; Performing any better
+                           on a given objective would reduce performance on 
+                           some other objective. (utilize the figure)
+                        </li>
+                        <li>
+                           Goal: Find the set of Pareto-optimal policies, i.e. 
+                           consider all possible trade-offs.
+                        </li>
+                        <li>Examples of multi-objective cases:
+                           Robotics: Speed/manoeuvrability and energy consumption. 
+                           Finance: Risk & Returns
+                        </li>
+                     </ul>
+                  </aside>
+
+               </section>
+               
+               <!-- HIDDEN SLIDE -->
+               <section class="problem-setting-and-assumptions">
+                  <h2>Problem setting</h2>
+                  
+                  <div class="column-layout">
+                     <div>
+                        <figure>
+                           <figcaption class="col-title">Formal problem definition</figcaption>
+                           <ul class="med-size">
+                              <li>The problem is formally defined as 
+                                 <span class="alert">
+                                    Multi-objective Markov decision process (MOMDP)
+                                </span>
+                              </li> 
+                              <li>
+                                 The reward function of a MOMPD is <span class="alert">vector-valued</span>
+                                 and thus the value function of a policy \(\pi\)
+                                 is also vector-valued.
+                                 \[\begin{equation*}
+                                    \mathbf{V}^{\pi} = \mathbb{E}\left[
+                                       \sum_{k=0}^{\infty} \gamma^k \mathbf{r}_{k+1}\;|\;\pi, \mu
+                                    \right]
+                                 \end{equation*}\]
+                              </li>
+                              <li>
+                                 <span class="alert">
+                                    Utility function
+                                 </span> \(u:\; \mathbb{R}^d \rightarrow \mathbb{R}\),
+                                 parametrized by the user preferences \(\mathbf{w}\),
+                                 is used to map the value-function into a scalar:
+                                 \(\;V_u^{\pi} = u(\mathbf{V}^\pi)\)
+                              </li>
+                              <li>
+                                 <span class="alert">Goal</span> of the MORL agent is to optimize
+                                 the scalarized (discounted) cumulative return.
+                              </li>
+                           </ul>
+                        </figure>
+                     </div>
+                     
+                     <div>
+                        <figure>
+                           <figcaption class="col-title">Assumptions</figcaption>
+                           <ul class="med-size">
+                              <li>
+                                 The preferences \(\mathbf{w}\) are not known in advance
+                              </li>
+                              <li>
+                                 The utility function is as linear combination
+                                 of the preferences over the objectives:
+                                 \(u(\mathbf{r}, \mathbf{w}) = \mathbf{w}^T \mathbf{r}\)
+                              </li>
+                              <li>
+                                 The preferences are presented as a non-zero vector
+                                 \(\mathbf{w}\), where
+                                 \[\begin{equation*}
+                                 0 \leq w_i \leq 1,\; i=1,\dots, n\text{ and } \sum_{i=1}^n w_i = 1
+                                 \end{equation*}\]
+                              </li>
+                              <li>
+                                 The returns \(\mathbf{G}_t\) are differentiable
+                              </li>
+                           </ul>
+                        </figure>
+                     </div>
+                  </div>
+
+                  <aside class="notes">
+                    <ul>
+                       <li>
+                          Optimizing reward-valued value-function is not
+                          possible &rArr; Requires utility function
+                       </li>
+                       <li>
+                          Goal: Optimize the cumulative scalarized reward with
+                          the given preferences
+                       </li>
+                       <li>
+                          w not known in advance &rArr; One needs to find all 
+                          possible trade-offs
+                       </li>
+                       <li>
+                          Linear utility function simplifies problem
+                          significantly.
+                       </li>
+                    </ul> 
+                  </aside>
+               </section>
+
+               <section class="research-question">
+                  <h2>Research questions</h2>
+                  <div class="column-layout">
+                     <figure>
+                       <figcaption class="col-title">Motivation</figcaption> 
+                       <ul class="med-size">
+                           <li> Current approaches for finding Pareto-front
+                              either produce a set of policies naturally 
+                              (<em>inner-loop</em> methods), or repeatedly
+                              solve a single objective problem with different
+                              scalarizations of the objective (<em>outer-loop</em> methods).
+                              <span class="ref" id="@hayes_practical_2022"></span>
+                           </li> 
+                           <li>
+                              The inherit simplicity of outer-loop methods is 
+                              appealing. However, they suffer from
+                              <span class="alert">inefficiency</span> since a
+                              new policy is trained for each scalarization of
+                              the goal.
+                           </li>
+
+                           <li>
+                              The optimal policies for different user preferences
+                              can differ significantly. Previous attemps to 
+                              generalize learned information to new policies 
+                              with different preferences over the objectives
+                              (e.g. Meta-policy approach by Chen et al. 
+                              <span class="ref" id="@chen_meta-learning_2019"></span>
+                              )
+                              have suffered from sub-optimal performance.
+                           </li>
+                       </ul>
+                     </figure>
+                     <figure>
+                        <figcaption class="col-title">Research questions</figcaption>
+                        <ul class="med-size">
+                          <li>
+                             Can the learned information from the previous 
+                             Pareto optimal policies be generalized to new 
+                             policies with different preferences over the objectives,
+                             while retaining the <em>quality</em> of the solution set.
+                          </li> 
+                          <li>
+                             Can the information sharing improve the efficiency
+                             of the training process?
+                          </li>
+                        </ul>
+                     </figure>
+                  </div>
+                  <!-- Speaker notes -->
+                  <aside class="notes">
+                     <ul>
+                        <li>
+                           Two approaches for solving: Inner and outer-loop methods
+                        </li>
+                        <li>
+                           Outer-loop methods inefficient, since no information
+                           sharing. 
+                        </li>
+                        <li>
+                           Optimal policies can differ significantly.
+                        </li>
+                     </ul>
+                  </aside>
+               </section>
+
+               <!-- The suggested solution approach -->
+               <section class="solution-proposal">
+                  <h2>Solution proposal</h2>
+                  <div class="column-layout">
+                     <div>
+                        <ul class="med-size">
+                           <li>
+                              <span class="alert">Hypernetworks</span> have shown 
+                              excellent performance in many different tasks,
+                              including traditional RL. <span class="ref" id="@chauhan_brief_2023">
+                           </li>
+                           <li>
+                              <span class="alert">Hypothesis</span>: natural
+                              information sharing of hypernetworks could improve 
+                              the generalization capabilities of Pareto-optimal
+                              policies.
+                           </li>
+                           <li>
+                              Mimicking the work of Sarafian et al. 
+                              <span class="ref" id="@sarafian_recomposing_2021"></span>, add 
+                              hypernetwork to the critic of Concave Augmented
+                              Pareto Q-Learning (CAPQL)
+                              <span class="ref" id="@lu_multi_objective_2023"></span>
+                           </li>
+
+                           <li>
+                              Two different configurations for the critic:
+                              <ul>
+                                 <li>
+                                    <b>A-critic-MO-hyper</b>: The critic
+                                    network takes in only action \(a\) as its input
+                                 </li>
+                                 <li>
+                                    <b>SAP-critic-MO-hyper</b>: The critic network
+                                    takes in <b>s</b>tate \(s\), <b>a</b>ction \(a\)
+                                    and <b>p</b>references \(\mathbf{w}\) as its inputs.
+                                 </li>
+                                 <li>
+                                    In both cases the hypernetwork takes 
+                                    the <b>s</b>tate \(s\) and <b>p</b>references
+                                    \(\mathbf{w}\) as it's input.
+                                 </li>
+                              </ul>
+
+                           </li>
+                        </ul> 
+                     </div>
+
+                     <div>
+                        <figure>
+                           <img src="images/theory/model-structure.svg" alt="" height=305>
+                           <figcaption><b>a)</b> Overview of the model structure</figcaption>
+                        </figure>
+                     </div>
+                     
+                     <div>
+                        <figure>
+                           <img src="images/theory/architecture.svg" alt="">
+                           <figcaption><b>b)</b> Hypernetwork architecture</figcaption>
+                        </figure>
+                     </div>
+                     
+                     <!-- Speaker notes -->
+                     <aside class="notes">
+                        <ul>
+                           <li>Hypernetworks are neural networks that produce weights for another network.</li>
+                           <li>This scheme allows for soft-information sharing AND for continuous Pareto-front.</li>
+                           <li>
+                              Two configurations: This is done to see if the 
+                              encoding of the information in the weights is enough.
+                           </li>
+                           <li>
+                              Hypernetwork is a ResNet with 9M parameters,
+                              again motivated by Sarafian et al.
+                           </li>
+                        </ul>
+                     </aside>
+                  </div>
+                  
+               </section>
+
+
+               <!-- Experiment setup -->
+               <section class="experiment-setup">
+                  <h2>Experiment setup</h2>
+                        <div class="two-col-bottom-row-layout">
+                        <figure class="tc-br-col1">
+                           <figcaption class="col-title">Baseline methods</figcaption>
+                           <ul class="med-size">
+                              <li class="title-color">
+                                 Concave augmented Pareto Q-learning (<b>CAPQL</b>)
+                                 <span class="ref", id="@lu_multi_objective_2023"></span>
+                              </li>
+                              <ul>
+                                 <li>
+                                    Uses 2-layer MLP for Gaussian policy, and
+                                    the critic network. 
+                                 </li>
+                              </ul>
+                              <li class="title-color">CAPQL Large</li>
+                              <ul>
+                                 <li>
+                                    CAPQL with 3-layer MLP with &asymp; 9M parameters
+                                    for the critic network (Similar to the A-critic-MO-hyper).
+                                 </li>
+                              </ul>
+
+                              <li class="title-color">
+                                 Prediction guided multi-objective 
+                                 reinforcement learning (<b>PGMORL</b>)
+                                 <span class="ref" id="@xu_prediction_guided_2020"></span>
+                              </li> 
+                             <ul>
+                                 <li>
+                                    Evolutionary approach that predicts on 
+                                    which preferences to train on. 
+                                 </li>
+                             </ul>
+                             <li class="title-color">
+                                General Policy improvement with linear support 
+                                (<b>GPI-LS</b>)<span class="ref" id="@alegre_sample_efficient_2023"></span>
+                             </li>
+                             <ul>
+                                <li>
+                                   Has theoretical guarantees on which preferences
+                                   should be trained on. Known to be sample 
+                                   efficient.
+                                </li>
+                             </ul>
+                           </ul>
+                        </figure>
+
+                        <figure class="tc-br-col2">
+                           <figcaption class="col-title">Benchmark tasks</figcaption>
+                           <ul class="med-size">
+                              <li class="title-color">Multi-objective Half cheetah</li>
+                              <ul class="med-size">
+                                 <li>Two objectives: Energy efficiency &amp; forward speed.</li> 
+                                 <li>
+                                    Pareto-front consists of 4 different policy families.
+                                    <span class="ref" id="@xu_prediction_guided_2020"></span>
+                                 </li>
+                              </ul>
+                              <li class="title-color">Multi-objective Hopper</li>
+                              <ul class="med-size">
+                                 <li>Two objectives: Jump height &amp; forward speed.</li>
+                                 <li>
+                                    Pareto-front consists of 2 different policy families.
+                                    <span class="ref" id="@xu_prediction_guided_2020"></span>
+                                 </li>
+                              </ul>
+                              <li class="title-color">Multi-objective Swimmer</li>
+                              <ul class="med-size">
+                                <li>Two objectives: Energy efficiency &amp; forward speed.</li> 
+                                <li>
+                                   Pareto-front consists of 3 different policies families.
+                                   <span class="ref" id="@xu_prediction_guided_2020"></span>
+                                </li>
+                              </ul>
+                              <li>Exact environment definitions adapted from Xu et al. <span class="ref" id="@xu_prediction_guided_2020"></span></li>
+                           </ul>
+                        </figure>
+
+                        <!--- Bottom row --->
+                        <figure class="tc-br-bottom-row-1">
+                           <img src="images/env_plots/halfcheetah_v4.svg" alt="Image of the Half cheetah environment">
+                           <figcaption><b>a)</b>: The Half cheetah environment</figcaption>
+                        </figure> 
+
+                        <figure class="tc-br-bottom-row-2">
+                           <img src="images/env_plots/hopper_v4.svg" alt="Image of the Hopper environment">
+                           <figcaption><b>b)</b>: The Hopper environment</figcaption>
+                        </figure> 
+
+                        <figure class="tc-br-bottom-row-3">
+                           <img src="images/env_plots/swimmer_v4.svg" alt="Image of the Swimmer environment">
+                           <figcaption><b>c)</b>: The Swimmer environment</figcaption>
+                        </figure> 
+                     </div>
+
+                     <aside class="notes">
+                       <ul>
+                          <li>
+                           CAPQL and CAPQL large base methods. Large tests if 
+                           any improvements are due to parameter count or model architecture.
+                          </li>
+                           <li>
+                              PGMORL previous SOTA on continuous control. Trains 
+                              discrete, separate policies. Sample Inefficient.
+                           </li> 
+                           <li>
+                              GPI-LS is a quite new method, provides SOTA
+                              sample-efficiency. Has theoretical guarantees
+                              on which preferences need to be considered.
+                           </li>
+                           <li>
+                              The PGMORL paper describes that the Pareto-front 
+                              can be partitioned into distinct families. Can be 
+                              seen as an indicator on how different the policies
+                              along the front are.
+                           </li>
+                       </ul> 
+                     </aside>
+               </section>
+
+               
+               <!-- Performance indicators -->
+               <section class="performance-indicators">
+                  <h2>Performance indicators</h2>
+                  <div class="column-layout">
+                     <ul class="med-size">
+                       <li>
+                           <b>Hypervolume</b>&uArr; measures the volume of 
+                           the Pareto-dominated undominated solutions over the
+                           possible in an approximate coverage set. This metric
+                           combines the <em>uniformity</em>, <em>spread</em>
+                           and <em>convergence</em> of the solution set and is able
+                           to indicate improvement in any of them.
+                           <span class="ref" id="@zintgraf_utility_2015"></span>.
+                           Formally, the hypervolume is defined as:
+                           \[\begin{equation*}
+                              I^*_H(\mathcal{S}) =  
+                                 \int_{\mathbf{z}_{\mathrm{lower}}}^{\mathbf{z}_{\mathrm{upper}}}
+                                 \mathbf{1}_{\mathcal{S}}(\mathbf{z})d\mathbf{z}
+                           \end{equation*}\]
+                           where \(\mathcal{S}\) is the solution set and 
+                           \(\mathbf{1}\) is an indicator function that is 1, when 
+                           the vector \(\mathbf{z}\) is dominated by some vector
+                           \(\mathbf{s}\) in the solution set.
+                           <span class="ref" id="@zitzler_quality_2008"></span>
+                       </li>
+
+                       <li>
+                          <b>Sparsity</b>&dArr; measures how sparse
+                          the produced solution set is. It is defined as the 
+                          average distance between two adjacent points in the 
+                          solution space:
+                          \[\begin{equation*}
+                              Sp(\mathcal{S}) = \frac{1}{|\mathcal{S}| - 1}
+                                 \sum_{j=1}^m \sum_{i=1}^{|\mathcal{S}|}(
+                                    \tilde{S}_j(i) - \tilde{S}_i(i+1)
+                                 )^2
+                          \end{equation*}\]
+                          where \(\mathcal{S}\) is the approximated solution set.
+                          Since one always desires denser approximation of the 
+                          Pareto-front, a lower sparsity is better.
+                          <span class="ref" id="@xu_prediction_guided_2020"></span>
+                       </li>
+                     </ul>
+
+                     <ul class="med-size">
+                       <li>
+                          <b>Expected utility metric (EUM)</b>&uArr; describes the 
+                          amount of utility the agent is expected to provide
+                          to the user on average, given the used family
+                          of utility functions. More formally, EUM is defined
+                          as 
+                          \[\begin{equation*}
+                               \mathrm{EUM} = \mathbb{E}_{P_u}\left[ 
+                                    \underset{\mathbf{V}^\pi \in \mathcal{S}}{\max}\; u(\mathbf{V}^\pi)
+                                 \right]
+                           \end{equation*}\]
+                           where \(\mathcal{S}\) is the solution set, \(u\) is the 
+                           utility function and \(P_u\) is the distribution over
+                           the utility functions.
+                           <span class="ref" id="@zintgraf_utility_2015"></span>
+                       </li>
+
+                       <li>
+                          <b>Inverted generational distance + (IGD+)</b>&dArr;
+                          measures the performance of the given approximation
+                          of the Pareto-front by measuring the average
+                          distance of a point \(z_i\) from a reference 
+                          point set \(Z = \{z_1, z_2, \dots, z_m\}\) to the nearest
+                          point \(a_i\) in the solution set:
+                          \[\begin{equation*}
+                              IGD^+(\mathcal{S}) = \frac{1}{|Z|}\sum_{j=1}^{|Z|} d^+(\mathbf{z}, \mathbf{s}_{j(k)})
+                          \end{equation*}\]
+                          where \(d^+_j = \sqrt{\sum_{i=1}^m \max\{z_j - s_j, 0\}}\) 
+                          and \(\mathbf{s}_{j(k)}\) is the nearest solution point
+                          to \(\mathbf{z}_k\).
+                          <span class="ref" id="@ishibuchi_modified_2015"></span>
+                       </li>
+                     </ul>
+                  </div>
+                  
+                  <aside class="notes">
+                    <ul>
+                       <li>Optimal Pareto-front has a good coverage, is dense and converged.</li>
+                       <li>Hypervolume: Combines spread, uniformity and convergence</li> 
+                       <li>Sparsity measures the density of the set. Used since hypervolume cannot notice gaps.</li>
+                       <li>EUM: Utility based viewpoint</li>
+                       <li>IGD+: Comparison to an "expert" solution.</li>
+                    </ul> 
+                  </aside>
+
+               </section>
+            
+
+               <!-- Results for Halfcheetah, swimmer and hopper -->
+               <section>
+                  <h2>Results</h2>
+               </section>
+
+
+               <!-- Comparison of Resnet and Hypernet and LARGE CAPQL -->
+
+               <section class="hopper-results">
+                  <h2>Hopper</h2>
+                  <div class="results-grid">
+                        <figure class="results-grid-fig-1">
+                           <img
+                              src="./images/comparison_plots/hopper-pareto-front.svg"
+                              alt="Example of the pareto-front produced by the
+                                 different methods in multi-objective Hopper"
+                              height=395>
+                           <figcaption>
+                              <b>a)</b> Example of the produced solution set for the 
+                              multi-objective Hopper. The size of the marks
+                              indicates the variance of the value.
+                           </figcaption>
+                        </figure>
+
+                        <figure class="results-grid-fig-2">
+                          <img
+                              src="images/comparison_plots/hopper-metrics.svg"
+                              alt="The Hypervolume, IGD+, Sparsity and Expected
+                              utility as a function of timestep in Hopper"
+                          > 
+                          <figcaption>
+                             <b>b)</b> Performance metrics for Hopper.
+                             Note the logarithmic y-scale on sparsity and the 
+                             scaled timesteps on PGMORL.<sup>1</sup>
+                          </figcaption>
+                        </figure>
+                        <div class="results-grid-text">
+                           
+                           <ul class="med-size">
+                           <li>
+                              Both hypernetwork approaches clearly improve 
+                              the performance over the base CAPQL.
+                           </li>
+                           <li>
+                              Performance of CAPQL Large is on par with the 
+                              hypernetwork approaches.
+                           </li>
+                           <li>
+                              The produced solution sets have poor coverage of
+                              the boundaries of the preferences.
+                           </li>
+                        </ul> 
+                        </div>
+
+                  </div>
+
+                  <div class="small-note">
+                        1. Figure contains median of 5 runs &plusmn; standard deviation \(\sigma\) 
+                  </div>
+
+                  <!-- Speaker notes -->
+                  <aside class="notes">
+                     <ul>
+                       <li>
+                          Both hypernetwork approaches perform similarly. NOTE: The hopper has the simplest Pareto-front
+                       </li>
+                       <li>
+                          CAPQL not able to learn, CAPQL-Large has similar performance to hypernetworks.
+                       </li>
+                       <li>
+                          All methods have large gap at the far-ends of the preference range.
+                       </li>
+                     </ul>
+                  </aside>
+               </section>
+
+               <section class="half-cheetah-results">
+                  <h2>Half cheetah</h2>
+                  <div class="results-grid">
+
+                        <figure class="results-grid-fig-1">
+                           <img 
+                              src="images/comparison_plots/halfcheetah-pareto-front.svg"
+                              alt="Example of the pareto-front produced by the
+                                 different methods in multi-objective Half cheetah"
+                              height=395>
+                           <figcaption>
+                              <b>a)</b> Example of solution sets for the 
+                              multi-objective Half cheetah. The size of the 
+                              marks indicates the variance of the value.
+                           </figcaption>
+                        </figure>
+
+                        <figure class="results-grid-fig-2">
+                          <img src="images/comparison_plots/halfcheetah-metrics.svg"
+                              alt="The Hypervolume, IGD+, Sparsity and Expected
+                              utility as a function of timestep in Half cheetah"
+                           >
+                          <figcaption>
+                             <b>b)</b> Performance metrics for Half cheetah.
+                             Note the logarithmic y-scale on sparsity and the scaled
+                             timesteps on PGMORL. <sup>1</sup>
+                          </figcaption>
+                        </figure>
+
+                        <div class="results-grid-text">
+                           <ul class="med-size">
+                              <li>
+                                 In contrast to the Hopper, the SAP-critic-MO-hyper
+                                 clearly outperforms A-critic-MO-hyper.
+                              </li>
+                              <li>
+                                 While the base CAPQL has similar performance 
+                                 than the SAP-critic-MO-hyper, it's convergence
+                                 is slower.
+                              </li>
+                              <li>
+                                 The SAP-critic-MO-hyper has greater run to run
+                                 variance than the base CAPQL.
+                              </li>
+                           </ul>
+                        </div>
+                  </div>
+
+                  <div class="small-note">
+                        1. Figure contains median of 5 runs &plusmn; standard deviation \(\sigma\) 
+                  </div>
+
+                  <aside class="notes">
+                    <ul>
+                        <li>
+                           A-critic-MO-hyper does not learn anything &rArr; In
+                           more complex task, the information redundancy is required.
+                        </li>
+                        <li>
+                           CAPQL and CAPQL large have similar final performance
+                           to the SAP-critic-MO-hyper, yet they converge slower.
+                        </li>
+                        <li>
+                           Note the clear overfitting on the energy efficiency object.
+                        </li>
+                    </ul> 
+                  </aside>
+               </section>
+               
+               <!-- Comparison of different sampling method -->
+               
+               <!-- Also include comparison to CAPQL -->
+               <section class="swimmer-results">
+                  <h2>Swimmer</h2>
+                  <div class="results-grid">
+                        <figure class="results-grid-fig-1">
+                           <img
+                              src="./images/comparison_plots/swimmer-pareto-front.svg"
+                              alt="Example of the pareto-front produced by the 
+                              different methods in multi-objective Swimmer"
+                              height=395>
+                           <figcaption>
+                              <b>a) </b>Example of the produced solution set 
+                              for the multi-objective Swimmer. The size of the 
+                              marks indicate the variance of the value.
+                           </figcaption>
+                        </figure>
+
+                        <figure class="results-grid-fig-2">
+                          <img 
+                              src="images/comparison_plots/swimmer-metrics.svg"
+                              alt="The Hypervolume, IGD+, Sparsity and Expected
+                              utility as a function of timestep in Swimmer"
+                          > 
+                          <figcaption>
+                             <b>b) </b>Performance metrics for Swimmer.
+                             Note the logarithmic y-scale on sparsity and the 
+                             scaled timesteps on PGMORL. <sup>1</sup>
+                          </figcaption>
+                        </figure>
+                        <div class="results-grid-text">
+                           <ul class="med-size">
+                              <li>
+                                 None of the used methods are able to find a policy
+                                 that performs well in moving the swimmer.
+                             </li>
+                             <li>
+                                Again, A-critic-MO-hyper performs worse than 
+                                SAP-critic-MO-hyper.
+                             </li>
+                             <li>
+                                The large gap in the difficulty of the objectives
+                                poses problems for the algorithms.
+                             </li> 
+                           </ul> 
+                        </div>
+                  </div>
+
+                  <div class="small-note">
+                     1. Figure contains median of 5 runs &plusmn; standard deviation \(\sigma\) 
+                  </div>
+
+
+
+                  <aside class="notes">
+                    <ul>
+                       <li>
+                          Note the scale difference between energy efficiency and speed reward
+                       </li>
+                       <li>
+                          Since the metric graphs are almost constant, it is clear
+                          that none of the methods are learning to move the swimmer.
+                       </li>
+                       <li>
+                          Large gap in the objective difficulties poses a challenge
+                          for the methods even if the scales of rewards are similar.
+                       </li>
+                    </ul> 
+                  </aside>
+               </section>
+
+
+               <section>
+                  <h2>Rollouts with SAP-critic-MO-hyper</h2>
+                  <div class="grid-5-col">
+                     
+                     <!-- Hopper rollouts -->
+                     <figure>
+                        <figcaption>\(\mathbf{w} = \{1.0, 0.0\}\)</figcaption>
+                        <video width="140" height="140" autoplay loop controls>
+                           <source src="videos/hopper_sap-critic-sp-hyper-pref_0.mp4" type="video/mp4">
+                        </video>
+                     </figure>
+                     
+                     <figure>
+                        <figcaption>\(\mathbf{w} = \{0.75, 0.25\}\)</figcaption>
+                        <video width="140" height="140" autoplay loop controls>
+                           <source src="videos/hopper_sap-critic-sp-hyper-pref_1.mp4" type="video/mp4">
+                        </video>
+                     </figure>
+               
+
+                     <figure>
+                        <figcaption>\(\mathbf{w} = \{0.5, 0.5\}\)</figcaption>
+                        <video width="140" height="140" autoplay loop controls>
+                           <source src="videos/hopper_sap-critic-sp-hyper-pref_2.mp4" type="video/mp4">
+                        </video>
+                     </figure>
+                  
+                     <figure>
+                        <figcaption>\(\mathbf{w} = \{0.25, 0.75\}\)</figcaption>
+                        <video width="140" height="140" autoplay loop controls>
+                           <source src="videos/hopper_sap-critic-sp-hyper-pref_3.mp4" type="video/mp4">
+                        </video>
+                     </figure>
+
+                     <figure>
+                        <figcaption>\(\mathbf{w} = \{0.0, 1.0\}\)</figcaption>
+                        <video width="140" height="140" autoplay loop controls>
+                           <source src="videos/hopper_sap-critic-sp-hyper-pref_4.mp4" type="video/mp4">
+                        </video>
+                     </figure>
+
+                     <!-- Half cheetah rollouts -->
+                     <figure>
+                        <video width="140" height="140" autoplay loop controls>
+                           <source src="videos/halfcheetah_sap-critic-sp-hyper-pref_0.mp4" type="video/mp4">
+                        </video>
+                     </figure>
+
+                     <figure>
+                        <video width="140" height="140" autoplay loop controls>
+                           <source src="videos/halfcheetah_sap-critic-sp-hyper-pref_1.mp4" type="video/mp4">
+                        </video>
+                     </figure>
+
+                     <figure>
+                        <video width="140" height="140" autoplay loop controls>
+                           <source src="videos/halfcheetah_sap-critic-sp-hyper-pref_2.mp4" type="video/mp4">
+                        </video>
+                     </figure>
+
+                     <figure>
+                        <video width="140" height="140" autoplay loop controls>
+                           <source src="videos/halfcheetah_sap-critic-sp-hyper-pref_3.mp4" type="video/mp4">
+                        </video>
+                     </figure>
+
+                     <figure>
+                        <video width="140" height="140" autoplay loop controls>
+                           <source src="videos/halfcheetah_sap-critic-sp-hyper-pref_4.mp4" type="video/mp4">
+                        </video>
+                     </figure>
+
+                     <!-- Swimmer rollouts -->
+
+                     <figure>
+                        <video width="140" height="140" autoplay loop controls>
+                           <source src="videos/swimmer_sap-critic-sp-hyper-pref_0.mp4" type="video/mp4">
+                        </video>
+                     </figure>
+
+                     <figure>
+                        <video width="140" height="140" autoplay loop controls>
+                           <source src="videos/swimmer_sap-critic-sp-hyper-pref_1.mp4" type="video/mp4">
+                        </video>
+                     </figure>
+
+                     <figure>
+                        <video width="140" height="140" autoplay loop controls>
+                           <source src="videos/swimmer_sap-critic-sp-hyper-pref_2.mp4" type="video/mp4">
+                        </video>
+                     </figure>
+
+                     <figure>
+                        <video width="140" height="140" autoplay loop controls>
+                           <source src="videos/swimmer_sap-critic-sp-hyper-pref_3.mp4" type="video/mp4">
+                        </video>
+                     </figure>
+
+                     <figure>
+                        <video width="140" height="140" autoplay loop controls>
+                           <source src="videos/swimmer_sap-critic-sp-hyper-pref_4.mp4" type="video/mp4">
+                        </video>
+                     </figure>
+                  </div>
+
+                  <!-- Speaker notes -->
+                  <aside class="notes">
+                     <ul>
+                        <li>
+                           In hopper, all the policies are quite similar. 
+                           This was expected due to the results from PGMORL
+                        </li>
+                        <li>
+                           In half cheetah, the learned policies nicely cover
+                           the whole range of preferences.
+                        </li>
+                        <li>
+                           In Swimmer, the policies overfit on the energy 
+                           efficiency, regardless of the user preferences.
+                        </li>
+                     </ul>
+                  </aside>
+               </section>
+            
+
+               <section class="closer-look-at-training-progress">
+                  <h2>Closer look at the training progress</h2> 
+                  <div class="results-grid">
+                     <!-- COL 1 -->
+                     <figure class="results-grid-fig-1">
+                        <img src="./images/progress_plots/halfcheetah-progress.svg" alt=""> 
+                        <figcaption>
+                          <b>a)</b> Example of the evolution of the solution set 
+                          in Half cheetah with SAP-critic-MO-hyper.
+                        </figcaption>
+                     </figure>
+
+                     <figure class="results-grid-fig-2">
+                       <img src="./images/progress_plots/halfcheetah-distribution-combo.svg" alt="" height=385>
+                       <figcaption>
+                          <b>b)</b>The preference, scalarized reward, policy
+                          loss and critic loss distributions as a function
+                          of timestep
+                       </figcaption>
+                     </figure>
+
+                     <ul class="results-grid-text med-size">
+                        <li>
+                           The hypernetwork prefers the easily attainable 
+                           reward from the energy efficiency, rather than learning
+                           the more complicated objective.
+                        </li> 
+                        <li>
+                           The scalarized reward distribution is skewed towards
+                           the lower speed preference, even though the preference
+                           distribution is concentrated on the middle.
+                        </li>
+                        <li>
+                           The critic loss distribution is similar across preferences.
+                           The policy is not actively exploring new possibilities
+                           for solving the problem.
+                        </li>
+                     </ul>
+                  </div>
+
+                  <aside class="notes">
+                    <ul>
+                        <li>
+                           Clearly, the hypernetwork overfits early on. I.e. 
+                           one needs determine the difficulty of the objectives
+                           quickly.
+                        </li> 
+
+                        <li>
+                           There is a clear skew in reward distribution when
+                           comparing the preference and reward distributions.
+                        </li> 
+                        <li>
+                           Interestingly, the critic does not seem to have a 
+                           similar skew &rArr; It is equally good approximator
+                           over the all preferences.
+                        </li> 
+                    </ul> 
+                  </aside>
+               </section>
+
+               <section>
+                  <h2>Proof of concept: Compacting the overfitting</h2>
+                  <div class="results-grid">
+                       <figure class="results-grid-fig-1">
+                        <img src="./images/warmup_plots/halfcheetah-warmup-metrics.svg" alt="">
+                        <figcaption>
+                           <b>a)</b> Results of using warm up in Half cheetah.<sup>1</sup>
+                        </figcaption>
+                       </figure> 
+
+                       <figure class="results-grid-fig-2">
+                          <img src="./images/warmup_plots/swimmer-warmup-metrics.svg" alt="">
+                          <figcaption>
+                             <b>b)</b> Results of using warm up in Swimmer.<sup>1</sup>
+                          </figcaption>
+                       </figure>
+
+                     <div class="results-grid-text">
+                        <ul class="med-size">
+                          <li>
+                             To compact the overfitting on easy objective, 
+                             add a warm up-phase where sampling distribution
+                             is skewed towards more challenging objectives.
+                          </li> 
+                          <li>
+                             Utilizing warm up-phase further improves the convergence
+                             speed. However, it has minimal impact on the final
+                             performance.
+                          </li>
+                          <li>
+                             In Swimmer, even the warm up is not enough to fix
+                             the overfitting towards the energy efficiency objective.
+                          </li>
+                          <li>
+                             <b>Problem</b>: How to detect which objectives are the most 
+                             challenging ones?
+                          </li>
+                        </ul>
+                     </div>
+                  </div>
+
+                  <div class="small-note">
+                     1. Figure shows the median of 5 runs &plusmn; standard-deviation \(\sigma\)
+                  </div>
+
+                  <!-- Speaker notes -->
+                  <aside class="notes">
+                     <ul>
+                        <li>
+                           The improvement in the converge speed can also be 
+                           seen with base CAPQL is using warm up
+                        </li>
+                        <li>
+                           This indicates that the selection of preferences has
+                           quite large effect on the results.
+                        </li>
+                        <li>
+                           The difficulty gap in swimmer seem to be wider than
+                           in Half cheetah.
+                        </li>
+                     </ul>
+                  </aside>
+
+               </section>
+
+               <section>
+                  <h2>Effect of hypernetwork architecture</h2>
+                  <div class="two-thirds-vert-layout">
+                     <figure class="two-thirds-vert-layout-pos-1-1">
+                        <img src="./images/hypernet_architecture_comparison_figs/halfcheetah_architecture_metrics.svg" alt="">
+                        <figcaption>
+                           <b>a)</b> Comparison of ResNet and MLP
+                           hypernetworks on Half cheetah.<sup>1</sup>
+                        </figcaption>
+                     </figure>
+                     <figure class="two-thirds-vert-layout-pos-1-2">
+                        <img src="./images/hypernet_architecture_comparison_figs/hopper_architecture_metrics.svg" alt="">
+                        <figcaption>
+                           <b>b)</b> Comparison of ResNet and MLP
+                           hypernetworks on Hopper.<sup>1</sup>
+                        </figcaption>
+                     </figure>
+
+                     <figure class="two-thirds-vert-layout-pos-1-3">
+                        <img src="./images/hypernet_architecture_comparison_figs/swimmer_architecture_metrics.svg" alt="">
+                        <figcaption
+                           ><b>c)</b> Comparison of ResNet and MLP 
+                           hypernetworks on Swimmer.<sup>1</sup>
+                        </figcaption>
+                     </figure>
+
+                     <div class="two-thirds-vert-layout-pos-2">
+                        <ul class="med-size">
+                           <li>
+                              To study the effect of the hypernetwork architecture,
+                              a MLP hypernetwork was tested with similar amount
+                              of parameters compared to the ResNet.
+                           </li>
+                           <li>
+                              Performance between MLP and ResNet is similar 
+                              in Half cheetah and Swimmer. However, in Hopper
+                              the MLP is not able to learn at all.
+                           </li>
+                           <li>
+                              The MLP hypernetwork has seemingly smaller
+                              run-to-run variance than ResNet hypernetwork.
+                           </li>
+                        </ul>
+                     </div>
+                  </div>
+
+                  <div class="small-note">
+                     1. Figures shows the median of five runs &plusmn; standard-deviation \(\sigma\).
+                  </div>
+               </section>
+
+               <section class="summary-and-future-directions">
+                  <h2>Summary & Future research directions</h2>
+                  <div class="column-layout">
+                     <div>
+                        <figcaption class="col-title">Summary</figcaption>
+                        <ul class="med-size">
+                           <li>
+                              Hypernetworks are a promising option for 
+                              improving the convergence speed of MORL algorithms
+                              in more complicated tasks.
+                           </li>
+                           <li>
+                              However, Hypernetworks <span class="alert">do not</span>
+                              seem to improve the final performance of the base
+                              algorithm significantly in all cases.
+                           </li>
+                           <li>
+                             The method used to select the preferences has a 
+                             significant impact on the performance.
+                           </li>
+                           <li>
+                              Hypernetworks are known to be fragile, and this
+                              is the case also here.
+                           </li>
+                        </ul>
+                     </div>
+                     <div>
+                        <figcaption class="col-title">Future directions</figcaption>   
+                        <ul class="med-size">
+                           <li>
+                              This work considered using hypernetwork only for 
+                              the critic. However, also the policy is 
+                              conditioned on the preferences. 
+                              Utilizing a hypernetwork for both policy and critic
+                              could be an option worth looking into.
+                           </li>  
+
+                           <li>
+                              GPI-LS offers currently SOTA sample efficiency.
+                              Applying hypernetworks to GPI-LS could provide
+                              insight on how much the hypernetworks could
+                              improve the convergence speed in the best case.
+                           </li>
+
+                           <li>
+                              Continue to develop more general algorithm
+                              for selecting the preferences during the training.
+                           </li>
+                        </ul> 
+                     </div>
+                  </div>
+               </section>
+
+               
+               <!-- References -->
+               <section class="references">
+                  <h2> References </h2>
+                  <div id="refs" class="references" role="doc-bibliography">
+                     <div id="ref-roijers_survey_2013">
+                     <p>[1] D. M. Roijers, P. Vamplew, S. Whiteson, and R. Dazeley, “A survey of multi-objective sequential decision-making,” <em>Journal of Artificial Intelligence Research</em>, vol. 48, pp. 67–113, Oct. 2013, doi: <a href="https://doi.org/10.1613/jair.3987">10.1613/jair.3987</a>.</p>
+                     </div>
+                     <div id="ref-hayes_practical_2022">
+                     <p>[2] C. F. Hayes <em>et al.</em>, “A practical guide to multi-objective reinforcement learning and planning,” <em>Autonomous Agents and Multi-Agent Systems</em>, vol. 36, no. 1, Apr. 2022, doi: <a href="https://doi.org/10.1007/s10458-022-09552-y">10.1007/s10458-022-09552-y</a>.</p>
+                     </div>
+                     <div id="ref-chen_meta-learning_2019">
+                     <p>[3] X. Chen, A. Ghadirzadeh, M. Björkman, and P. Jensfelt, “Meta-learning for multi-objective reinforcement learning,” in <em>2019 ieee/rsj international conference on intelligent robots and systems (iros)</em>, Macau, China: IEEE Press, 2019, pp. 977–983. doi: <a href="https://doi.org/10.1109/IROS40897.2019.8968092">10.1109/IROS40897.2019.8968092</a>.</p>
+                     </div>
+                     <div id="ref-chauhan_brief_2023">
+                     <p>[4] V. K. Chauhan, J. Zhou, P. Lu, S. Molaei, and D. A. Clifton, “A brief review of hypernetworks in deep learning.” arXiv, Aug. 10, 2023. Accessed: Aug. 16, 2023. Available: <a href="http://arxiv.org/abs/2306.06955">http://arxiv.org/abs/2306.06955</a></p>
+                     </div>
+                     <div id="ref-sarafian_recomposing_2021">
+                     <p>[5] E. Sarafian, S. Keynan, and S. Kraus, “Recomposing the reinforcement learning building blocks with hypernetworks,” in <em>Proceedings of the 38th international conference on machine learning</em>, M. Meila and T. Zhang, Eds., in Proceedings of machine learning research, vol. 139. PMLR, 2021, pp. 9301–9312. Available: <a href="https://proceedings.mlr.press/v139/sarafian21a.html">https://proceedings.mlr.press/v139/sarafian21a.html</a></p>
+                     </div>
+                     <div id="ref-lu_multi_objective_2023">
+                     <p>[6] H. Lu, D. Herman, and Y. Yu, “Multi-objective reinforcement learning: Convexity, stationarity and pareto optimality,” in <em>The eleventh international conference on learning representations</em>, 2023. Available: <a href="https://openreview.net/forum?id=TjEzIsyEsQ6">https://openreview.net/forum?id=TjEzIsyEsQ6</a></p>
+                     </div>
+                     <div id="ref-xu_prediction_guided_2020">
+                     <p>[7] J. Xu, Y. Tian, P. Ma, D. Rus, S. Sueda, and W. Matusik, “Prediction-guided multi-objective reinforcement learning for continuous robot control,” in <em>Proceedings of the 37th international conference on machine learning</em>, H. D. III and A. Singh, Eds., in Proceedings of machine learning research, vol. 119. PMLR, 2020, pp. 10607–10616. Available: <a href="https://proceedings.mlr.press/v119/xu20h.html">https://proceedings.mlr.press/v119/xu20h.html</a></p>
+                     </div>
+                     <div id="ref-alegre_sample_efficient_2023">
+                     <p>[8] A. B. Alegre Lucas N, D. M. Roijers, A. Nowé, and B. C. da Silva, “Sample-efficient multi-objective learning via generalized policy improvement prioritization,” in <em>AAMAS ’23: Proceedings of the 2023 international conference on autonomous agents and multiagent systems</em>, N. Agmon, B. An, A. Ricci, and W. Yeoh, Eds., International Foundation for Autonomous Agents; Multiagent Systems, 2023, pp. 2003–2012. doi: <a href="https://doi.org/10.5555/3545946.3598872">10.5555/3545946.3598872</a>.</p>
+                     </div>
+                     <div id="ref-zintgraf_utility_2015">
+                     <p>[9] L. M. Zintgraf, T. V. Kanters, D. M. Roijers, F. Oliehoek, and P. Beau, “Quality assessment of morl algorithms: A utility-based approach,” in <em>Benelearn 2015: Proceedings of the 24th annual machine learning conference of belgium and the netherlands</em>, 2015.</p>
+                     </div>
+                     <div id="ref-zitzler_quality_2008">
+                     <p>[10] E. Zitzler, J. Knowles, and L. Thiele, “Quality assessment of pareto set approximations,” in <em>Multiobjective optimization: Interactive and evolutionary approaches</em>, J. Branke, K. Deb, K. Miettinen, and R. Słowiński, Eds., Berlin, Heidelberg: Springer, 2008, pp. 373–404. doi: <a href="https://doi.org/10.1007/978-3-540-88908-3_14">10.1007/978-3-540-88908-3_14</a>.</p>
+                     </div>
+                     <div id="ref-ishibuchi_modified_2015">
+                     <p>[11] H. Ishibuchi, H. Masuda, Y. Tanigaki, and Y. Nojima, “Modified distance calculation in generational distance and inverted generational distance,” in <em>Evolutionary multi-criterion optimization</em>, A. Gaspar-Cunha, C. Henggeler Antunes, and C. C. Coello, Eds., in Lecture notes in computer science. Cham: Springer International Publishing, 2015, pp. 110–125. doi: <a href="https://doi.org/10.1007/978-3-319-15892-1_8">10.1007/978-3-319-15892-1_8</a>.</p>
+                     </div>
+                  </div>
+               </section>
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+        <script src="plugin/math/math.js"></script>
+        <script src="plugin/references_my/references.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+                slideNumber: "c/t",
+                totalTime: 60*15,
+                katex: {
+                  local: 'node_modules/katex',
+                },
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX]
+			});
+		</script>
+        <script>
+           const now = new Date();
+      </script>
+	</body>
+</html>
