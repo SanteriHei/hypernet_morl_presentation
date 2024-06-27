@@ -23,7 +23,7 @@
                     Generalizing Pareto optimal policies in 
                     Multi-objective Reinforcement learning
                  </h1>
-                 <h3 style="font-size: 70%"> Empirical study</h3>
+                 <h3 style="font-size: 70%"> Empirical study of hypernetworks</h3>
                  <span style="font-size: 60%"> Santeri Heiskanen</span></br>
                  <span style="text-align: center; font-size: 50%">
                     <b>Supervisors</b>: Prof. Ville Kyrki<sup>1</sup>,
@@ -180,9 +180,6 @@
                                  0 \leq w_i \leq 1,\; i=1,\dots, n\text{ and } \sum_{i=1}^n w_i = 1
                                  \end{equation*}\]
                               </li>
-                              <li>
-                                 The returns \(\mathbf{G}_t\) are differentiable
-                              </li>
                            </ul>
                         </figure>
                      </div>
@@ -276,11 +273,10 @@
                   </aside>
                </section>
 
-               <!-- The suggested solution approach -->
                <section class="solution-proposal">
                   <h2>Solution proposal</h2>
-                  <div class="column-layout">
-                     <div>
+                  <div class="master-grid">
+                     <div class="master-grid-text">
                         <ul class="med-size">
                            <li>
                               <span class="alert">Hypernetworks</span> have shown 
@@ -293,14 +289,6 @@
                               the generalization capabilities of Pareto-optimal
                               policies.
                            </li>
-                           <li>
-                              Mimicking the work of Sarafian et al. 
-                              <span class="ref" id="@sarafian_recomposing_2021"></span>, add 
-                              hypernetwork to the critic of Concave Augmented
-                              Pareto Q-Learning (CAPQL)
-                              <span class="ref" id="@lu_multi_objective_2023"></span>
-                           </li>
-
                            <li>
                               Two different configurations for the critic:
                               <ul>
@@ -319,22 +307,33 @@
                                     \(\mathbf{w}\) as it's input.
                                  </li>
                               </ul>
-
+                           </li>
+                           <li>
+                              The policies are trained using an existing MORL algorithm,
+                              called Concave Augmented Pareto Q-learning (CAPQL)
+                              <span class="ref" id="@lu_multi_objective_2023"></span>
                            </li>
                         </ul> 
                      </div>
-
-                     <div>
-                        <figure>
-                           <img src="images/theory/model-structure.svg" alt="" height=305>
-                           <figcaption><b>a)</b> Overview of the model structure</figcaption>
-                        </figure>
-                     </div>
                      
-                     <div>
-                        <figure>
+                        <figure class="master-grid-fig-1">
+                           <img src="images/theory/model-structure.svg" alt="" height=229>
+                           <figcaption>
+                              <b>a)</b> Following the work of Sarafian et al.
+                                 <span class="ref" id="@sarafian_recomposing_2021"></span>,
+                                 the critic is modeled as a <em>Contextual bandit</em>
+                                 \(Q_{s, \mathbf{w}}(a)\).
+                           </figcaption>
+                        </figure>
+                        
+                        <figure class="master-grid-fig-2">
                            <img src="images/theory/architecture.svg" alt="">
-                           <figcaption><b>b)</b> Hypernetwork architecture</figcaption>
+                           <figcaption>
+                              <b>b)</b> The hypernetwork consists of multiple
+                              residual network plots. Each head of the hypernetwork
+                              produces the parameters for a single layer of the 
+                              critic network.
+                           </figcaption>
                         </figure>
                      </div>
                      
@@ -353,10 +352,8 @@
                            </li>
                         </ul>
                      </aside>
-                  </div>
                   
                </section>
-
 
                <!-- Experiment setup -->
                <section class="experiment-setup">
@@ -573,227 +570,35 @@
                   </aside>
 
                </section>
-            
 
-               <!-- Results for Halfcheetah, swimmer and hopper -->
-               <section>
+               <section class="results">
                   <h2>Results</h2>
+                  <div class="row-layout">
+                     <figure>
+                        <img src="./images/aggregate_figs/combined_results_poster.svg" alt="">
+                        <figcaption>
+                           <b>Figure</b> The interquartile mean scores with 95% 
+                           bootstraped confidence intervals for each of the used
+                           environments. The GPI-LS was trained for 300k timesteps,
+                           PGMORL for 9M timesteps and rest for 1.2M timesteps.
+                        </figcaption>
+                     </figure>
+                     
+                     <div class="text-box">
+                        <ul class="med-size">
+                           <li>Overall, the hypernetworks <b>do not</b> improve the final performance of the algorithms.</li>
+                           <li>Moreover, the increase in the parameter count results in larger run to run variance.</li>
+                           <li>Passing the state and preferences explicitly to the critic improves the performance.</li>
+                           <li>However, there seems to be a clear improvement in the convergence speed (Not shown)</li>
+                        </ul>
+                     </div>
+                  </div>
+
+                  
                </section>
 
-
-               <!-- Comparison of Resnet and Hypernet and LARGE CAPQL -->
-
-               <section class="hopper-results">
-                  <h2>Hopper</h2>
-                  <div class="results-grid">
-                        <figure class="results-grid-fig-1">
-                           <img
-                              src="./images/comparison_plots/hopper-pareto-front.svg"
-                              alt="Example of the pareto-front produced by the
-                                 different methods in multi-objective Hopper"
-                              height=395>
-                           <figcaption>
-                              <b>a)</b> Example of the produced solution set for the 
-                              multi-objective Hopper. The size of the marks
-                              indicates the variance of the value.
-                           </figcaption>
-                        </figure>
-
-                        <figure class="results-grid-fig-2">
-                          <img
-                              src="images/comparison_plots/hopper-metrics.svg"
-                              alt="The Hypervolume, IGD+, Sparsity and Expected
-                              utility as a function of timestep in Hopper"
-                          > 
-                          <figcaption>
-                             <b>b)</b> Performance metrics for Hopper.
-                             Note the logarithmic y-scale on sparsity and the 
-                             scaled timesteps on PGMORL.<sup>1</sup>
-                          </figcaption>
-                        </figure>
-                        <div class="results-grid-text">
-                           
-                           <ul class="med-size">
-                           <li>
-                              Both hypernetwork approaches clearly improve 
-                              the performance over the base CAPQL.
-                           </li>
-                           <li>
-                              Performance of CAPQL Large is on par with the 
-                              hypernetwork approaches.
-                           </li>
-                           <li>
-                              The produced solution sets have poor coverage of
-                              the boundaries of the preferences.
-                           </li>
-                        </ul> 
-                        </div>
-
-                  </div>
-
-                  <div class="small-note">
-                        1. Figure contains median of 5 runs &plusmn; standard deviation \(\sigma\) 
-                  </div>
-
-                  <!-- Speaker notes -->
-                  <aside class="notes">
-                     <ul>
-                       <li>
-                          Both hypernetwork approaches perform similarly. NOTE: The hopper has the simplest Pareto-front
-                       </li>
-                       <li>
-                          CAPQL not able to learn, CAPQL-Large has similar performance to hypernetworks.
-                       </li>
-                       <li>
-                          All methods have large gap at the far-ends of the preference range.
-                       </li>
-                     </ul>
-                  </aside>
-               </section>
-
-               <section class="half-cheetah-results">
-                  <h2>Half cheetah</h2>
-                  <div class="results-grid">
-
-                        <figure class="results-grid-fig-1">
-                           <img 
-                              src="images/comparison_plots/halfcheetah-pareto-front.svg"
-                              alt="Example of the pareto-front produced by the
-                                 different methods in multi-objective Half cheetah"
-                              height=395>
-                           <figcaption>
-                              <b>a)</b> Example of solution sets for the 
-                              multi-objective Half cheetah. The size of the 
-                              marks indicates the variance of the value.
-                           </figcaption>
-                        </figure>
-
-                        <figure class="results-grid-fig-2">
-                          <img src="images/comparison_plots/halfcheetah-metrics.svg"
-                              alt="The Hypervolume, IGD+, Sparsity and Expected
-                              utility as a function of timestep in Half cheetah"
-                           >
-                          <figcaption>
-                             <b>b)</b> Performance metrics for Half cheetah.
-                             Note the logarithmic y-scale on sparsity and the scaled
-                             timesteps on PGMORL. <sup>1</sup>
-                          </figcaption>
-                        </figure>
-
-                        <div class="results-grid-text">
-                           <ul class="med-size">
-                              <li>
-                                 In contrast to the Hopper, the SAP-critic-MO-hyper
-                                 clearly outperforms A-critic-MO-hyper.
-                              </li>
-                              <li>
-                                 While the base CAPQL has similar performance 
-                                 than the SAP-critic-MO-hyper, it's convergence
-                                 is slower.
-                              </li>
-                              <li>
-                                 The SAP-critic-MO-hyper has greater run to run
-                                 variance than the base CAPQL.
-                              </li>
-                           </ul>
-                        </div>
-                  </div>
-
-                  <div class="small-note">
-                        1. Figure contains median of 5 runs &plusmn; standard deviation \(\sigma\) 
-                  </div>
-
-                  <aside class="notes">
-                    <ul>
-                        <li>
-                           A-critic-MO-hyper does not learn anything &rArr; In
-                           more complex task, the information redundancy is required.
-                        </li>
-                        <li>
-                           CAPQL and CAPQL large have similar final performance
-                           to the SAP-critic-MO-hyper, yet they converge slower.
-                        </li>
-                        <li>
-                           Note the clear overfitting on the energy efficiency object.
-                        </li>
-                    </ul> 
-                  </aside>
-               </section>
-               
-               <!-- Comparison of different sampling method -->
-               
-               <!-- Also include comparison to CAPQL -->
-               <section class="swimmer-results">
-                  <h2>Swimmer</h2>
-                  <div class="results-grid">
-                        <figure class="results-grid-fig-1">
-                           <img
-                              src="./images/comparison_plots/swimmer-pareto-front.svg"
-                              alt="Example of the pareto-front produced by the 
-                              different methods in multi-objective Swimmer"
-                              height=395>
-                           <figcaption>
-                              <b>a) </b>Example of the produced solution set 
-                              for the multi-objective Swimmer. The size of the 
-                              marks indicate the variance of the value.
-                           </figcaption>
-                        </figure>
-
-                        <figure class="results-grid-fig-2">
-                          <img 
-                              src="images/comparison_plots/swimmer-metrics.svg"
-                              alt="The Hypervolume, IGD+, Sparsity and Expected
-                              utility as a function of timestep in Swimmer"
-                          > 
-                          <figcaption>
-                             <b>b) </b>Performance metrics for Swimmer.
-                             Note the logarithmic y-scale on sparsity and the 
-                             scaled timesteps on PGMORL. <sup>1</sup>
-                          </figcaption>
-                        </figure>
-                        <div class="results-grid-text">
-                           <ul class="med-size">
-                              <li>
-                                 None of the used methods are able to find a policy
-                                 that performs well in moving the swimmer.
-                             </li>
-                             <li>
-                                Again, A-critic-MO-hyper performs worse than 
-                                SAP-critic-MO-hyper.
-                             </li>
-                             <li>
-                                The large gap in the difficulty of the objectives
-                                poses problems for the algorithms.
-                             </li> 
-                           </ul> 
-                        </div>
-                  </div>
-
-                  <div class="small-note">
-                     1. Figure contains median of 5 runs &plusmn; standard deviation \(\sigma\) 
-                  </div>
-
-
-
-                  <aside class="notes">
-                    <ul>
-                       <li>
-                          Note the scale difference between energy efficiency and speed reward
-                       </li>
-                       <li>
-                          Since the metric graphs are almost constant, it is clear
-                          that none of the methods are learning to move the swimmer.
-                       </li>
-                       <li>
-                          Large gap in the objective difficulties poses a challenge
-                          for the methods even if the scales of rewards are similar.
-                       </li>
-                    </ul> 
-                  </aside>
-               </section>
-
-
-               <section>
+             
+               <section class="rollouts">
                   <h2>Rollouts with SAP-critic-MO-hyper</h2>
                   <div class="grid-5-col">
                      
@@ -916,9 +721,8 @@
                      </ul>
                   </aside>
                </section>
-            
 
-               <section class="closer-look-at-training-progress">
+               <section class="closer-look-at-training-progress" data-visibility="hidden">
                   <h2>Closer look at the training progress</h2> 
                   <div class="results-grid">
                      <!-- COL 1 -->
@@ -979,173 +783,57 @@
                   </aside>
                </section>
 
-               <section>
-                  <h2>Proof of concept: Compacting the overfitting</h2>
-                  <div class="results-grid">
-                       <figure class="results-grid-fig-1">
-                        <img src="./images/warmup_plots/halfcheetah-warmup-metrics.svg" alt="">
-                        <figcaption>
-                           <b>a)</b> Results of using warm up in Half cheetah.<sup>1</sup>
-                        </figcaption>
-                       </figure> 
-
-                       <figure class="results-grid-fig-2">
-                          <img src="./images/warmup_plots/swimmer-warmup-metrics.svg" alt="">
-                          <figcaption>
-                             <b>b)</b> Results of using warm up in Swimmer.<sup>1</sup>
-                          </figcaption>
-                       </figure>
-
-                     <div class="results-grid-text">
-                        <ul class="med-size">
-                          <li>
-                             To compact the overfitting on easy objective, 
-                             add a warm up-phase where sampling distribution
-                             is skewed towards more challenging objectives.
-                          </li> 
-                          <li>
-                             Utilizing warm up-phase further improves the convergence
-                             speed. However, it has minimal impact on the final
-                             performance.
-                          </li>
-                          <li>
-                             In Swimmer, even the warm up is not enough to fix
-                             the overfitting towards the energy efficiency objective.
-                          </li>
-                          <li>
-                             <b>Problem</b>: How to detect which objectives are the most 
-                             challenging ones?
-                          </li>
-                        </ul>
-                     </div>
-                  </div>
-
-                  <div class="small-note">
-                     1. Figure shows the median of 5 runs &plusmn; standard-deviation \(\sigma\)
-                  </div>
-
-                  <!-- Speaker notes -->
-                  <aside class="notes">
-                     <ul>
-                        <li>
-                           The improvement in the converge speed can also be 
-                           seen with base CAPQL is using warm up
-                        </li>
-                        <li>
-                           This indicates that the selection of preferences has
-                           quite large effect on the results.
-                        </li>
-                        <li>
-                           The difficulty gap in swimmer seem to be wider than
-                           in Half cheetah.
-                        </li>
-                     </ul>
-                  </aside>
-
-               </section>
-
-               <section>
-                  <h2>Effect of hypernetwork architecture</h2>
-                  <div class="two-thirds-vert-layout">
-                     <figure class="two-thirds-vert-layout-pos-1-1">
-                        <img src="./images/hypernet_architecture_comparison_figs/halfcheetah_architecture_metrics.svg" alt="">
-                        <figcaption>
-                           <b>a)</b> Comparison of ResNet and MLP
-                           hypernetworks on Half cheetah.<sup>1</sup>
-                        </figcaption>
-                     </figure>
-                     <figure class="two-thirds-vert-layout-pos-1-2">
-                        <img src="./images/hypernet_architecture_comparison_figs/hopper_architecture_metrics.svg" alt="">
-                        <figcaption>
-                           <b>b)</b> Comparison of ResNet and MLP
-                           hypernetworks on Hopper.<sup>1</sup>
-                        </figcaption>
-                     </figure>
-
-                     <figure class="two-thirds-vert-layout-pos-1-3">
-                        <img src="./images/hypernet_architecture_comparison_figs/swimmer_architecture_metrics.svg" alt="">
-                        <figcaption
-                           ><b>c)</b> Comparison of ResNet and MLP 
-                           hypernetworks on Swimmer.<sup>1</sup>
-                        </figcaption>
-                     </figure>
-
-                     <div class="two-thirds-vert-layout-pos-2">
-                        <ul class="med-size">
-                           <li>
-                              To study the effect of the hypernetwork architecture,
-                              a MLP hypernetwork was tested with similar amount
-                              of parameters compared to the ResNet.
-                           </li>
-                           <li>
-                              Performance between MLP and ResNet is similar 
-                              in Half cheetah and Swimmer. However, in Hopper
-                              the MLP is not able to learn at all.
-                           </li>
-                           <li>
-                              The MLP hypernetwork has seemingly smaller
-                              run-to-run variance than ResNet hypernetwork.
-                           </li>
-                        </ul>
-                     </div>
-                  </div>
-
-                  <div class="small-note">
-                     1. Figures shows the median of five runs &plusmn; standard-deviation \(\sigma\).
-                  </div>
-               </section>
 
                <section class="summary-and-future-directions">
-                  <h2>Summary & Future research directions</h2>
+                  <h2>Summary & Future research directions <img src="images/qr-code.svg" alt="", height=50></h2>
                   <div class="column-layout">
-                     <div>
-                        <figcaption class="col-title">Summary</figcaption>
-                        <ul class="med-size">
-                           <li>
-                              Hypernetworks are a promising option for 
-                              improving the convergence speed of MORL algorithms
-                              in more complicated tasks.
-                           </li>
-                           <li>
-                              However, Hypernetworks <span class="alert">do not</span>
-                              seem to improve the final performance of the base
-                              algorithm significantly in all cases.
-                           </li>
-                           <li>
-                             The method used to select the preferences has a 
-                             significant impact on the performance.
-                           </li>
-                           <li>
-                              Hypernetworks are known to be fragile, and this
-                              is the case also here.
-                           </li>
-                        </ul>
-                     </div>
-                     <div>
-                        <figcaption class="col-title">Future directions</figcaption>   
-                        <ul class="med-size">
-                           <li>
-                              This work considered using hypernetwork only for 
-                              the critic. However, also the policy is 
-                              conditioned on the preferences. 
-                              Utilizing a hypernetwork for both policy and critic
-                              could be an option worth looking into.
-                           </li>  
+                        <div>
+                           <figcaption class="col-title">Summary</figcaption>
+                           <ul class="med-size">
+                              <li>
+                                 Hypernetworks seem to be a promising option for 
+                                 improving the <em>convergence speed</em> of MORL
+                                 algorithms in more complicated tasks.
+                              </li>
+                              <li>
+                                 However, Hypernetworks <span class="alert">do not</span>
+                                 seem to improve the final performance of the base
+                                 algorithm significantly in all cases.
+                              </li>
+                              <li>
+                                 Hypernetworks are known to be fragile, and this
+                                 is the case also here.
+                              </li>
+                              <li>
+                                The method used to select the preferences has a 
+                                significant impact on the performance.
+                              </li>
+                           </ul>
+                        </div>
+                        <div>
+                           <figcaption class="col-title">Future directions</figcaption>   
+                           <ul class="med-size">
+                              <li>
+                                 This work considered using hypernetwork only for 
+                                 the critic. However, also the policy is 
+                                 conditioned on the preferences. 
+                                 Utilizing a hypernetwork for both policy and critic
+                                 could be an option worth looking into.
+                              </li>  
 
-                           <li>
-                              GPI-LS offers currently SOTA sample efficiency.
-                              Applying hypernetworks to GPI-LS could provide
-                              insight on how much the hypernetworks could
-                              improve the convergence speed in the best case.
-                           </li>
-
-                           <li>
-                              Continue to develop more general algorithm
-                              for selecting the preferences during the training.
-                           </li>
-                        </ul> 
+                              <li>
+                                 Currently, GPI-LS offers unmatched sample-efficiency.
+                                 Applying hypernetworks to GPI-LS could provide
+                                 insight on how much the hypernetworks can
+                                 improve the convergence speed in the best case.
+                              </li>
+                              <li>
+                                 Continue to develop more general algorithm
+                                 for selecting the preferences during the training.
+                              </li>
+                           </ul> 
+                        </div>
                      </div>
-                  </div>
                </section>
 
                

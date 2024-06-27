@@ -106,6 +106,30 @@ figcaption.col-title {
    grid-auto-rows: minmax(100px, auto);
 }
 
+.master-grid {
+   display: grid;
+   grid-template-columns:  2fr 1fr 1fr;
+   grid-auto-rows: minmax(200px, auto);
+}
+
+.master-grid-text {
+   display: flex;
+   flex-direction: row;
+   align-items: center;
+   grid-column: 1;
+   grid-row: 1;
+}
+
+.master-grid-fig-1{
+   grid-column: 2;
+   grid-row: 1;
+}
+
+.master-grid-fig-2 {
+   grid-column: 3;
+   grid-row: 1;
+}
+
 
 /* Column layout for the results */
 .results-grid {
@@ -167,6 +191,12 @@ figcaption.col-title {
    align-items: center;
 }
 
+.text-box {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+}
+
 
 .triangle-layout {
    display: grid;
@@ -222,4 +252,8 @@ figcaption.col-title {
 
 .references p {
   font-size: small; 
+}
+
+.results div {
+   grid-gap: 20px;
 }
