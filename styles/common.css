@@ -1,5 +1,15 @@
-.med-size {
+li {
    font-size: medium;
+}
+
+figure {
+   display: table;
+}
+
+figcaption {
+   font-size: small;
+   display: table-caption;
+   caption-side: bottom;
 }
 
 .alert {
@@ -31,18 +41,16 @@ img {
    vertical-align: middle;
 }
 
-figcaption {
-   font-size: small;
-}
 
 figcaption.col-title {
    font-size: medium;
    font-weight: bold;
+   caption-side: top;
 }
 
 
 /* Emulate footnote placements */
-.small-note {
+.small-note{
    text-align: left;
    font-size: small;
 }
@@ -158,6 +166,12 @@ figcaption.col-title {
 
 
 /* Grid with 2/3 split of vertical space*/
+/* Layout:
+ * top-left    | top-right
+ * top-left    | top-right
+ * -------------------------
+ * bottom-left | bottom-right
+ */
 .two-thirds-vert-layout {
    display: grid;
    grid-gap: 10px;
@@ -191,69 +205,163 @@ figcaption.col-title {
    align-items: center;
 }
 
+
+
+
+.text-vbox {
+   display: flex;
+   flex-direction: row;
+   align-items: center;
+}
+
 .text-box {
    display: flex;
    flex-direction: column;
    align-items: center;
 }
 
-
+/* layout:
+ * top-left | top-right
+ * ---- bottom ------
+ * */
 .triangle-layout {
    display: grid;
    grid-template-rows: 1fr 1fr;
-   grid-template-columns: repeat(6, 1fr);
+   grid-template-columns: 1fr 1fr;
 }
 
 .triangle-top-left {
    grid-row: 1;
-   grid-column: 1/4;
+   grid-column: 1/2;
 }
 
 .triangle-top-right {
    grid-row: 1;
-   grid-column: 4/7;
+   grid-column: 2/3;
 }
 
 .triangle-bottom {
    grid-row: 2;
-   grid-column: 2/5;
+   grid-column: 1/3;
 }
 
-/* Slide specific styles */
+.text-col-two-fig-layout {
+   display: grid;
+   grid-template-areas:
+   "text fig1"
+   "text fig1"
+   "text fig2";
+}
 
-.problem-setting-and-assumptions div {
+.text-col-two-fig-layout-fig1 {
+   grid-area: fig1;
+}
+
+.text-col-two-fig-layout-fig2 {
+   grid-area: fig2;
+}
+
+.text-col-two-fig-layout-text {
+   grid-area: text;
+}
+
+
+.main-fig-text-fig-layout {
+   display: grid;
+   grid-template-areas: 
+   "fig1 fig1 fig1 fig1 fig1"
+   "ltext ltext ltext fig2 fig2";
+}
+
+.main-fig-text-fig-layout-text {
+   grid-area: ltext;
+}
+
+.main-fig-text-fig-layout-fig1 {
+   grid-area: fig1;
+}
+
+.main-fig-text-fig-layout-fig2 {
+   grid-area: fig2;
+}
+
+.two-col-bottom-fig-layout {
+   display: grid;
+   grid-template-areas:
+   "textl fig1"
+   "fig2 fig2";
+}
+.two-col-bottom-fig-layout-text {
+   grid-area: textl;
+}
+
+.two-col-bottom-fig-layout-fig1 {
+   grid-area: fig1
+}
+
+.two-col-bottom-fig-layout-fig2 {
+   grid-area: fig2
+}
+
+.split-col-one-col-layout {
+   display: grid;
+   grid-template-areas:
+   "textl fig1"
+   "fig2 fig1"
+}
+
+.split-col-one-col-layout-text{
+   grid-area: textl;
+}
+
+.split-col-one-col-layout-fig1{
+   grid-area: fig1;
+}
+
+.split-col-one-col-layout-fig2{
+   grid-area: fig2;
+}
+
+
+/* Split horizontal space into two thirds and rest
+ * left | right right
+ */
+.two-one-hsplit {
+   display: grid;
+   grid-template-columns: 1fr 2fr;
+}
+
+.two-one-hsplit-col-1 {
+   display: flex;
+   justify-content: center;
+   flex-direction: column;
+}
+
+.four-six-hsplit {
+   display: grid;
+   grid-template-columns: 4fr 6fr;
+}
+
+
+/* <-- Slide specific styles --> */
+#rollouts figcaption {
+   caption-side: top;
+}
+
+#problem-setting-and-assumptions div {
    grid-gap: 10px;
 }
-.experiment-setup img {
+
+#experiment-setup img {
    width: 300px;
 }
 
-.hopper-results div {
-   grid-gap: 10px;
-}
-
-.half-cheetah-results div {
-   grid-gap: 10px;
-}
-
-.swimmer-results div {
-   grid-gap: 10px;
-
-}
-
-.closer-look-at-training-progress div {
-   grid-gap: 20px;
-}
-
 /* Add gap between columns in last-slide */
-.summary-and-future-directions div {
+#summary-and-future-directions div {
    grid-gap: 20px;
 }
 
-.references p {
+#references p {
   font-size: small; 
 }
 
-.results div {
-   grid-gap: 20px;
-}
