@@ -12,6 +12,12 @@ figcaption {
    caption-side: bottom;
 }
 
+img {
+   max-width: 100%;
+   max-height: 100%;
+   vertical-align: middle;
+}
+
 .alert {
    color: #08457E;
    font-style: italic;
@@ -35,10 +41,6 @@ h2 {
 h3 {
    font-size: 70%!important;
    color: #08457E!important;
-}
-
-img {
-   vertical-align: middle;
 }
 
 
@@ -364,4 +366,3 @@ figcaption.col-title {
 #references p {
   font-size: small; 
 }
-
